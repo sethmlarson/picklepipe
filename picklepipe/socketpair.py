@@ -1,4 +1,13 @@
+import errno
 import socket
+import sys
+
+if sys.version_info > (3, 0):
+    _ASYNC_BLOCKING_ERRORS = (BlockingIOError, InterruptedError)
+else:
+    _ASYNC_BLOCKING_ERRORS = InterruptedError
+_ASYNC_BLOCKING_ERRNOS = {errno.EAGAIN,
+                          errno.EWOULDBLOCK}
 
 __all__ = [
     'socketpair'
@@ -34,8 +43,13 @@ except AttributeError:
                 csock.setblocking(False)
                 try:
                     csock.connect((addr, port))
-                except (BlockingIOError, InterruptedError):
+                except _ASYNC_BLOCKING_ERRORS:
                     pass
+                except OSError as e:
+                    if e.errno in _ASYNC_BLOCKING_ERRNOS:
+                        pass
+                    else:
+                        raise
                 csock.setblocking(True)
                 ssock, _ = lsock.accept()
             except:

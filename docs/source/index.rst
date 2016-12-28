@@ -1,5 +1,5 @@
-PicklePipe
-==========
+PicklePipe 🥒
+=============
 
 .. toctree::
     :hidden:
