@@ -117,7 +117,7 @@ class TestPicklePipe(unittest.TestCase):
                 pass
 
             def fileno(self):
-                return 1234
+                return 123
 
             def sendall(self, *_):
                 if self._sent:
