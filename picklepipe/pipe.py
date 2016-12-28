@@ -49,12 +49,11 @@ class PipeUnserializingError(PipeError):
 
 class BaseSerializingPipe(object):
     """ Wraps an already connected socket and uses that
-    socket as a interface to send pickled objects to a peer.
-    Can be used to pickle not only single objects but also
-    to pickle objects in a stream-able fashion. """
+    socket as a interface to send serialized objects to a peer. """
     def __init__(self, sock, serializer):
         """
         :param sock: Socket to wrap.
+        :param serializer: Object that implements .dumps() and .loads() to serialize objects.
         """
         self._buffer = b''
         self._serializer = serializer

@@ -50,7 +50,7 @@ Here's a very simple demonstration of scheduling a single job on a farm.
     import picklepipe
 
     # Create a pair of connected pipes.
-    pipe1, pipe2 = picklepipe.make_pipe_pair()
+    pipe1, pipe2 = picklepipe.make_pipe_pair(picklepipe.PicklePipe)
 
     # Send an object in one end.
     pipe1.send_object('Hello, world!')

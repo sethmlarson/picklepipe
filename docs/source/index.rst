@@ -9,7 +9,8 @@ PicklePipe 🥒
     contributing
     about
 
-Python pickling protocol over any network interface.
+Python pickling and marshal protocol over any network interface.
+Also provides a basic interface to implement your own serializing pipes.
 
 Getting Started with PicklePipe
 -------------------------------
@@ -31,7 +32,7 @@ Please read the security considerations before using PicklePipe.
     import picklepipe
 
     # Create a pair of connected pipes.
-    pipe1, pipe2 = picklepipe.make_pipe_pair()
+    pipe1, pipe2 = picklepipe.make_pipe_pair(picklepipe.PicklePipe)
 
     # Send an object in one end.
     pipe1.send_object('Hello, world!')
@@ -57,7 +58,7 @@ API Reference
 Security Considerations
 -----------------------
 
-Unpickling data from an untrusted source is a security hazard and can lead to arbitrary code execution.
+Unpickling or unmarshalling data from an untrusted source is a security hazard and can lead to arbitrary code execution.
 When using PicklePipe to receive objects from an external source one should be very careful to verify that
 the source of the data is trustworthy. This includes using SSL/TLS (both client and server side verification)
 to verify the connection is who we intend to receive data from.
