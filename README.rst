@@ -16,8 +16,8 @@ PicklePipe
 .. image:: https://readthedocs.org/projects/picklepipe/badge/?version=latest
     :target: http://picklepipe.readthedocs.io
     :alt: Documentation Build Status
-.. image:: https://pyup.io/repos/github/SethMichaelLarson/picklepipe/shield.svg
-     :target: https://pyup.io/repos/github/SethMichaelLarson/picklepipe
+.. image:: https://pyup.io/repos/github/sethmichaellarson/picklepipe/shield.svg
+     :target: https://pyup.io/repos/github/sethmichaellarson/picklepipe/
      :alt: Dependency Versions
 .. image:: https://img.shields.io/pypi/v/picklepipe.svg
     :target: https://pypi.python.org/pypi/picklepipe
