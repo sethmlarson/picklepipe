@@ -163,12 +163,13 @@ class BaseSerializingPipe(object):
 
 def make_pipe_pair(pipe_type, *args, **kwargs):
     """
-    Given two types of `picklepipe
+    Given a types of :class:`picklepipe.BaseSerializingPipe` return
+    a tuple containing two pipes instances that are connected to one another.
 
-    :param pipe_type:
-    :param args:
-    :param kwargs:
-    :return:
+    :param type pipe_type: Type of pipe to connect to one another.
+    :param args: Arguments to pass to the pipes init.
+    :param kwargs: Key-word arguments to pass to the pipes init.
+    :return: Tuple with two connected pipes.
     """
     rd, wr = socketpair()
     return (pipe_type(rd, *args, **kwargs),

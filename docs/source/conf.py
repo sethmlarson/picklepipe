@@ -99,7 +99,7 @@ todo_include_todos = True
 html_theme = 'alabaster'
 html_theme_path = [alabaster.get_path()]
 html_theme_options = {
-    'description': 'Python pickling protocol over any network interface.',
+    'description': 'Python pickling and marshal protocol over any network interface.',
     'github_user': 'SethMichaelLarson',
     'github_repo': 'picklepipe',
     'github_button': False,
