@@ -2,12 +2,9 @@ import errno
 import socket
 import sys
 
-if sys.version_info > (3, 0):
-    _ASYNC_BLOCKING_ERRORS = (BlockingIOError, InterruptedError)
-else:
-    _ASYNC_BLOCKING_ERRORS = InterruptedError
 _ASYNC_BLOCKING_ERRNOS = {errno.EAGAIN,
-                          errno.EWOULDBLOCK}
+                          errno.EWOULDBLOCK,
+                          errno.EINTR}
 
 __all__ = [
     'socketpair'
@@ -43,8 +40,6 @@ except AttributeError:
                 csock.setblocking(False)
                 try:
                     csock.connect((addr, port))
-                except _ASYNC_BLOCKING_ERRORS:
-                    pass
                 except OSError as e:
                     if e.errno in _ASYNC_BLOCKING_ERRNOS:
                         pass
