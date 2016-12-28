@@ -34,6 +34,15 @@ class TestPicklePipe(unittest.TestCase):
             obj = rd.recv_object(timeout=1.0)
             self.assertEqual(obj, i)
 
+    def test_timeout(self):
+        rd, wr = self.make_pipe_pair()
+        self.assertRaises(picklepipe.PicklePipeTimeout, rd.recv_object, timeout=1.0)
+
+    def test_only_sent_object_length(self):
+        rd, wr = self.make_pipe_pair()
+        rd._buffer = b'\x00\x00\x00\x01'
+        self.assertRaises(picklepipe.PicklePipeTimeout, rd.recv_object, timeout=1.0)
+
     def test_default_protocol(self):
         rd, wr = self.make_pipe_pair()
         self.assertEqual(rd.protocol, pickle.HIGHEST_PROTOCOL)

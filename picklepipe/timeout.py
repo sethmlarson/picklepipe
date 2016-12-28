@@ -12,7 +12,7 @@ if hasattr(time, 'monotonic'):
 else:
     try:
         from monotonic import monotonic
-    except RuntimeError:
+    except RuntimeError:  # Skip coverage.
         monotonic = time.time
 
 
