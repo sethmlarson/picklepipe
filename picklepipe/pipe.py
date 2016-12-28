@@ -9,8 +9,9 @@ from .timeout import Timeout
 __all__ = [
     'PicklePipe',
     'make_pipe_pair',
-    'PicklePipeTimeout',
-    'PicklePipeError'
+    'PicklePipeClosed',
+    'PicklePipeError',
+    'PicklePipeTimeout'
 ]
 
 
@@ -25,6 +26,12 @@ class PicklePipeTimeout(PicklePipeError):
     pass
 
 
+class PicklePipeClosed(PicklePipeError):
+    """ Exception for when the peer has closed
+    their end of the :class:`picklepipe.PicklePipe`. """
+    pass
+
+
 class PicklePipe(object):
     def __init__(self, sock, protocol=None):
         """ Wraps an already connected socket and uses that
@@ -32,7 +39,6 @@ class PicklePipe(object):
         Can be used to pickle not only single objects but also
         to pickle objects in a streamable fashion. """
         self._buffer = b''
-        self._closed = False
         self._protocol = protocol
         self._protocol_sent = False
         self._protocol_recv = False
@@ -51,12 +57,13 @@ class PicklePipe(object):
     @property
     def protocol(self):
         """ Highest protocol available between a peer
-        and """
+        and the current pipe owner. """
+        self._recv_protocol()
         return self._protocol
 
     def close(self):
         if self._sock is None:
-            raise ValueError('PicklePipe is already closed.')
+            return
         try:
             self._sock.close()
             self._selector.unregister(self._sock)
@@ -68,7 +75,7 @@ class PicklePipe(object):
 
     @property
     def closed(self):
-        return self._closed
+        return self._sock is None
 
     def fileno(self):
         """ Returns the file descriptor for the
@@ -79,7 +86,7 @@ class PicklePipe(object):
         """ Pickles and sends and object to the peer.
 
         :param obj: Object to send to the peer.
-        :raises: :class:`EOFError` if the other end of the pipe is closed.
+        :raises: :class:`picklepipe.PicklePipeClosed` if the other end of the pipe is closed.
         """
         self._recv_protocol()
         data = pickle.dumps(obj, protocol=self._protocol)
@@ -90,27 +97,32 @@ class PicklePipe(object):
             self._sock.sendall(struct.pack('>I', len(data)))
             self._sock.sendall(data)
         except (OSError, socket.error):
-            raise EOFError
+            self.close()
+            raise PicklePipeClosed()
 
     def recv_object(self, timeout=None):
         """ Receives a pickled object from the peer.
 
         :param float timeout: Number of seconds to wait before timing out.
         :return: Pickled object or None if timed out.
-        :raises: :class:`EOFError` if the other end of the pipe is closed.
+        :raises: :class:`picklepipe.PicklePipeClosed` if the other end of the pipe is closed.
         """
         self._recv_protocol()
-        with Timeout(timeout) as t:
-            len_data = self._read_bytes(4, timeout=t.remaining)
-            if len(len_data) != 4:
-                self._buffer += len_data
-                raise PicklePipeTimeout()
-            data_len = struct.unpack('>I', len_data)[0]
-            pickle_data = self._read_bytes(data_len, timeout=t.remaining)
-            if len(pickle_data) != data_len:
-                self._buffer += len_data + pickle_data
-                raise PicklePipeTimeout()
-            return pickle.loads(pickle_data)
+        try:
+            with Timeout(timeout) as t:
+                len_data = self._read_bytes(4, timeout=t.remaining)
+                if len(len_data) != 4:
+                    self._buffer += len_data
+                    raise PicklePipeTimeout()
+                data_len = struct.unpack('>I', len_data)[0]
+                pickle_data = self._read_bytes(data_len, timeout=t.remaining)
+                if len(pickle_data) != data_len:
+                    self._buffer += len_data + pickle_data
+                    raise PicklePipeTimeout()
+                return pickle.loads(pickle_data)
+        except (OSError, socket.error, selectors2.SelectorError, pickle.UnpicklingError):
+            self.close()
+            raise PicklePipeClosed()
 
     def _send_protocol(self):
         if not self._protocol_sent:
@@ -121,7 +133,11 @@ class PicklePipe(object):
         """ Resolves what the highest protocol number for
         pickling that is allowed by the peer. """
         if not self._protocol_recv:
-            peer_protocol = struct.unpack('>B', self._read_bytes(1))[0]
+            data = self._read_bytes(1)
+            if len(data) == 0:
+                self.close()
+                raise PicklePipeClosed()
+            peer_protocol = struct.unpack('>B', data)[0]
             self._protocol = min(self._protocol or pickle.HIGHEST_PROTOCOL, peer_protocol)
             self._protocol_recv = True
 
