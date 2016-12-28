@@ -17,7 +17,7 @@ class TestPicklePipe(unittest.TestCase):
     def patch_default_selector(self):
         from picklepipe import pipe
         old_default = pipe.selectors2.DefaultSelector
-        self.addCleanup(setattr(pipe.selectors2, 'DefaultSelector', old_default))
+        self.addCleanup(setattr, pipe.selectors2, 'DefaultSelector', old_default)
         pipe.selectors2.DefaultSelector = pipe.selectors2.SelectSelector
 
     def test_send_single_object(self):
