@@ -12,7 +12,7 @@ __all__ = [
     'PipeError',
     'PipeTimeout',
     'PipeSerializingError',
-    'PipeUnserializingError'
+    'PipeDeserializingError'
 ]
 
 
@@ -40,8 +40,8 @@ class PipeSerializingError(PipeError):
         self.exception = exception
 
 
-class PipeUnserializingError(PipeError):
-    """ Exception for when an object can't be un-serialized
+class PipeDeserializingError(PipeError):
+    """ Exception for when an object can't be deserialized
     by the pipe's serializing object. """
     def __init__(self, exception):
         self.exception = exception
@@ -134,7 +134,7 @@ class BaseSerializingPipe(object):
                 try:
                     return self._serializer.loads(pickle_data)
                 except Exception as e:
-                    raise PipeUnserializingError(e)
+                    raise PipeDeserializingError(e)
         except (OSError, socket.error, selectors2.SelectorError):
             self.close()
             raise PipeClosed()

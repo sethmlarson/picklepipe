@@ -1,4 +1,5 @@
 import os
+import socket
 import struct
 import pickle
 import unittest
@@ -110,7 +111,7 @@ class TestPicklePipe(unittest.TestCase):
         rd, wr = self.make_pipe_pair()
         rd._recv_protocol()
         rd._buffer = struct.pack('>I', 128) + os.urandom(128)
-        self.assertRaises(picklepipe.PipeUnserializingError, rd.recv_object, timeout=0.3)
+        self.assertRaises(picklepipe.PipeDeserializingError, rd.recv_object, timeout=0.3)
         self.assertIs(rd.closed, False)
 
     def test_send_object_to_closed_reading_socket_before_proto(self):
@@ -146,3 +147,28 @@ class TestPicklePipe(unittest.TestCase):
         wr._recv_protocol()
         w.close()
         self.assertRaises(picklepipe.PipeClosed, wr.send_object, 'abc')
+
+    def test_unserializable_object(self):
+        rd, wr = self.make_pipe_pair()
+        self.assertRaises(picklepipe.PipeSerializingError, wr.send_object, socket.socket())
+
+    def test_pipe_as_context_manager(self):
+        rd, wr = self.make_pipe_pair()
+        with wr as c:
+            self.assertIs(wr.closed, False)
+            c.send_object('abc')
+            obj = rd.recv_object(timeout=1.0)
+            self.assertEqual(obj, 'abc')
+            self.assertIs(wr.closed, False)
+        self.assertIs(wr.closed, True)
+
+    def test_reading_bytes_error(self):
+
+        def bad_recv_bytes(n, timeout=None):
+            raise OSError(1)
+
+        rd, wr = self.make_pipe_pair()
+        wr.send_object('abc')
+        rd._read_bytes = bad_recv_bytes
+        self.assertRaises(picklepipe.PipeClosed, rd.recv_object, timeout=0.3)
+        self.assertIs(rd.closed, True)

@@ -3,7 +3,7 @@ from .pipe import (BaseSerializingPipe,
                    PipeError,
                    PipeTimeout,
                    PipeSerializingError,
-                   PipeUnserializingError,
+                   PipeDeserializingError,
                    make_pipe_pair)
 from .picklepipe import PicklePipe
 from .marshalpipe import MarshalPipe
@@ -21,6 +21,6 @@ __all__ = [
     'PipeError',
     'PipeTimeout',
     'PipeSerializingError',
-    'PipeUnserializingError',
+    'PipeDeserializingError',
     'make_pipe_pair'
 ]
