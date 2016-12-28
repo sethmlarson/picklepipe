@@ -6,7 +6,7 @@ __all__ = [
 
 try:
     socketpair = socket.socketpair
-except ImportError:
+except AttributeError:
     # Origin: https://gist.github.com/4325783, by Geert Jansen.  Public domain.
     def socketpair(family=socket.AF_INET, type=socket.SOCK_STREAM, proto=0):
         if family == socket.AF_INET:
