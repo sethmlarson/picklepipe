@@ -30,7 +30,8 @@ class Timeout(object):
 
     @property
     def timed_out(self):
-        return self._timeout is not None and self._timeout - (monotonic() - self._start_time) <= 0.0
+        return (self._timeout is not None and
+                self._timeout - (monotonic() - self._start_time) <= 0.0)
 
     def __enter__(self):
         self._start_time = monotonic()
