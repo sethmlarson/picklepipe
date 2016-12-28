@@ -33,11 +33,18 @@ class PicklePipeClosed(PicklePipeError):
 
 
 class PicklePipe(object):
+    """ Wraps an already connected socket and uses that
+    socket as a interface to send pickled objects to a peer.
+    Can be used to pickle not only single objects but also
+    to pickle objects in a stream-able fashion. """
     def __init__(self, sock, protocol=None):
-        """ Wraps an already connected socket and uses that
-        socket as a interface to send pickled objects to a peer.
-        Can be used to pickle not only single objects but also
-        to pickle objects in a streamable fashion. """
+        """
+        Creates a :class:`picklepipe.PicklePipe` instance wrapping
+        a given socket.
+
+        :param sock: Socket to wrap.
+        :param protocol: Pickling protocol to favor.
+        """
         self._buffer = b''
         self._protocol = protocol
         self._protocol_sent = False
@@ -163,6 +170,14 @@ class PicklePipe(object):
         return buffer
 
 
-def make_pipe_pair():
+def make_pipe_pair(protocol=None):
+    """
+    Creates a pair of :class:`picklepipe.PicklePipe`
+    :param int protocol: Pickling protocol number to use. Default to highest available.
+    :return: Tuple of two pipes that are connected to one another.
+    """
+    if protocol is None:
+        protocol = pickle.HIGHEST_PROTOCOL
     sock1, sock2 = socketpair()
-    return PicklePipe(sock1), PicklePipe(sock2)
+    return (PicklePipe(sock1, protocol=protocol),
+            PicklePipe(sock2, protocol=protocol))
