@@ -26,7 +26,7 @@ except AttributeError:
         lsock = socket.socket(family, type, proto)
         try:
             lsock.bind((host, 0))
-            lsock.listen()
+            lsock.listen(1)
             # On IPv6, ignore flow_info and scope_id
             addr, port = lsock.getsockname()[:2]
             csock = socket.socket(family, type, proto)
