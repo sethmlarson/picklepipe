@@ -89,4 +89,4 @@ We happily welcome contributions, please see `our guide for Contributors <http:/
 License
 -------
 
-picklepipe is made available under the MIT License. For more details, see `LICENSE.txt <https://github.com/SethMichaelLarson/picklepipe/blob/master/LICENSE.txt>`_.
+PicklePipe is made available under the MIT License. For more details, see `LICENSE.txt <https://github.com/SethMichaelLarson/picklepipe/blob/master/LICENSE.txt>`_.

@@ -32,7 +32,7 @@ if __name__ == '__main__':
         maintainer_email='sethmichaellarson@protonmail.com',
         install_requires=requirements,
         keywords=['picklepipe'],
-        packages=[],
+        packages=['picklepipe'],
         zip_safe=False,
         classifiers=['Intended Audience :: Developers',
                      'License :: OSI Approved :: MIT License',

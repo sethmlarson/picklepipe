@@ -1,11 +1,10 @@
-Artisan ❤️ Automation
-=====================
+PicklePipe
+==========
 
 .. toctree::
     :hidden:
     :maxdepth: 2
 
-    api_reference/index
     changelog
     contributing
     about
@@ -13,7 +12,7 @@ Artisan ❤️ Automation
 Python pickling protocol over any network interface.
 
 Getting Started with PicklePipe
-----------------------------
+-------------------------------
 
 PicklePipe is available on PyPI can be installed with `pip <https://pip.pypa.io>`_.::
 
@@ -26,18 +25,33 @@ To install the latest development version from `Github <https://github.com/SethM
 
 If your current Python installation doesn't have pip available, try `get-pip.py <bootstrap.pypa.io>`_
 
-After installing PicklePipe you can use it like any other Python module.
-Here's a very simple demonstration of scheduling a single job on a farm.
-
 .. code-block:: python
 
     import picklepipe
-    # Fill this section in with the common use-case.
+
+    # Create a pair of connected pipes.
+    pipe1, pipe2 = picklepipe.make_pipe_pair()
+
+    # Send an object in one end.
+    pipe1.send_object('Hello, world!')
+
+    # And retrieve it from the other.
+    obj = pipe2.recv_object(timeout=1.0)
+
+    assert obj == 'Hello, world!'
+
+    # Also can be used to send objects to remote locations!
+    import socket
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.connect(('host', 12345))
+    pipe = picklepipe.PicklePipe(sock)
+    pipe.send_object('Hello, world!')
+    pipe.close()
 
 API Reference
 -------------
 
-The :doc:`api_reference/index` documentation provides API-level documentation.
+.. automodule:: picklepipe
 
 Support / Report Issues
 -----------------------
@@ -55,4 +69,4 @@ We happily welcome contributions, please see :doc:`contributing` for details.
 License
 -------
 
-picklepipe is made available under the MIT License. For more details, see :doc:`about`.
+PicklePipe is made available under the MIT License. For more details, see :doc:`about`.
