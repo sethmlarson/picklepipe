@@ -1,3 +1,4 @@
+import struct
 import pickle
 import unittest
 import picklepipe
@@ -36,12 +37,22 @@ class TestPicklePipe(unittest.TestCase):
 
     def test_timeout(self):
         rd, wr = self.make_pipe_pair()
-        self.assertRaises(picklepipe.PicklePipeTimeout, rd.recv_object, timeout=1.0)
+        self.assertRaises(picklepipe.PicklePipeTimeout, rd.recv_object, timeout=0.3)
 
     def test_only_sent_object_length(self):
         rd, wr = self.make_pipe_pair()
         rd._buffer = b'\x00\x00\x00\x01'
-        self.assertRaises(picklepipe.PicklePipeTimeout, rd.recv_object, timeout=1.0)
+        self.assertRaises(picklepipe.PicklePipeTimeout, rd.recv_object, timeout=0.3)
+
+    def test_only_sent_part_of_object_length(self):
+        rd, wr = self.make_pipe_pair()
+        rd._buffer = b'\x00\x00\x00'
+        self.assertRaises(picklepipe.PicklePipeTimeout, rd.recv_object, timeout=0.3)
+
+    def test_only_sent_part_of_object(self):
+        rd, wr = self.make_pipe_pair()
+        rd._buffer = struct.pack('>I', 4) + b'\x00\x00\x00'
+        self.assertRaises(picklepipe.PicklePipeTimeout, rd.recv_object, timeout=0.3)
 
     def test_default_protocol(self):
         rd, wr = self.make_pipe_pair()
