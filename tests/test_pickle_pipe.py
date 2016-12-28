@@ -146,31 +146,3 @@ class TestPicklePipe(unittest.TestCase):
         wr._recv_protocol()
         w.close()
         self.assertRaises(picklepipe.PipeClosed, wr.send_object, 'abc')
-
-    def test_erroring_socket(self):
-        class FakeSocket(object):
-            def __init__(self):
-                self._sent = False
-
-            def recv(self):
-                return b'\x01'
-
-            def setblocking(self, *_):
-                pass
-
-            def fileno(self):
-                return 123
-
-            def sendall(self, *_):
-                if self._sent:
-                    raise OSError()
-                self._sent = True
-
-        # Only want to use the SelectSelector here.
-        self.patch_default_selector()
-
-        pipe = picklepipe.PicklePipe(FakeSocket())
-        self.addCleanup(pipe.close)
-
-        self.assertRaises(picklepipe.PipeClosed, pipe.send_object, 'abc')
-        self.assertIs(pipe.closed, True)
