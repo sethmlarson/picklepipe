@@ -42,7 +42,7 @@ except AttributeError:
                 csock.setblocking(False)
                 try:
                     csock.connect((addr, port))
-                except OSError as e:
+                except (socket.error, OSError) as e:
                     if e.errno in _ASYNC_BLOCKING_ERRNOS:
                         pass
                     else:
