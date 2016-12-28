@@ -53,7 +53,9 @@ class BaseSerializingPipe(object):
     def __init__(self, sock, serializer):
         """
         :param sock: Socket to wrap.
-        :param serializer: Object that implements .dumps() and .loads() to serialize objects.
+        :param serializer:
+            Object that implements ``.dumps(obj)`` and
+            ``.loads(data)`` to serialize objects.
         """
         self._buffer = b''
         self._serializer = serializer
@@ -97,7 +99,7 @@ class BaseSerializingPipe(object):
         """ Pickles and sends and object to the peer.
 
         :param obj: Object to send to the peer.
-        :raises: :class:`picklepipe.PicklePipeClosed` if the other end of the pipe is closed.
+        :raises: :class:`picklepipe.PipeClosed` if the other end of the pipe is closed.
         """
         try:
             data = self._serializer.dumps(obj)
@@ -118,7 +120,7 @@ class BaseSerializingPipe(object):
 
         :param float timeout: Number of seconds to wait before timing out.
         :return: Pickled object or None if timed out.
-        :raises: :class:`picklepipe.PicklePipeClosed` if the other end of the pipe is closed.
+        :raises: :class:`picklepipe.PipeClosed` if the other end of the pipe is closed.
         """
         try:
             with Timeout(timeout) as t:

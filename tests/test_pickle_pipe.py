@@ -169,8 +169,9 @@ class TestPicklePipe(unittest.TestCase):
 
         rd, wr = self.make_pipe_pair()
         wr.send_object('abc')
+        rd._recv_protocol()
         rd._read_bytes = bad_recv_bytes
-        self.assertRaises(picklepipe.PipeClosed, rd.recv_object, timeout=0.3)
+        self.assertRaises(picklepipe.PipeClosed, rd.recv_object)
         self.assertIs(rd.closed, True)
 
     def test_no_data_for_recv_protocol(self):
