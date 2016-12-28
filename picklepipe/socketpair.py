@@ -1,10 +1,12 @@
 import errno
 import socket
-import sys
+
 
 _ASYNC_BLOCKING_ERRNOS = {errno.EAGAIN,
                           errno.EWOULDBLOCK,
                           errno.EINTR}
+if hasattr(errno, 'WSAEWOULDBLOCK'):
+    _ASYNC_BLOCKING_ERRNOS.add(errno.WSAEWOULDBLOCK)
 
 __all__ = [
     'socketpair'
