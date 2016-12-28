@@ -9,10 +9,10 @@ __all__ = [
 # just use time.time even though it's not comparable. :(
 if hasattr(time, 'monotonic'):
     monotonic = time.monotonic
-else:
+else:  # Skip coverage.
     try:
         from monotonic import monotonic
-    except RuntimeError:  # Skip coverage.
+    except RuntimeError:
         monotonic = time.time
 
 

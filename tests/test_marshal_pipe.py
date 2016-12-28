@@ -1,13 +1,13 @@
 import os
 import struct
-import pickle
+import marshal
 import unittest
 import picklepipe
 
 
-class TestPicklePipe(unittest.TestCase):
+class TestMarshalPipe(unittest.TestCase):
     def make_pipe_pair(self):
-        rd, wr = picklepipe.make_pipe_pair(picklepipe.PicklePipe)
+        rd, wr = picklepipe.make_pipe_pair(picklepipe.MarshalPipe)
         self.addCleanup(rd.close)
         self.addCleanup(wr.close)
         return rd, wr
@@ -55,36 +55,36 @@ class TestPicklePipe(unittest.TestCase):
         rd._buffer = struct.pack('>I', 4) + b'\x00\x00\x00'
         self.assertRaises(picklepipe.PipeTimeout, rd.recv_object, timeout=0.3)
 
-    def test_default_protocol(self):
+    def test_default_version(self):
         rd, wr = self.make_pipe_pair()
-        self.assertEqual(rd.protocol, pickle.HIGHEST_PROTOCOL)
-        self.assertEqual(wr.protocol, pickle.HIGHEST_PROTOCOL)
+        self.assertEqual(rd.version, marshal.version)
+        self.assertEqual(wr.version, marshal.version)
 
-    def test_same_protocol(self):
+    def test_same_version(self):
         r, w = self.make_socketpair()
-        rd = picklepipe.PicklePipe(r, protocol=2)
+        rd = picklepipe.MarshalPipe(r, version=2)
         self.addCleanup(rd.close)
-        wr = picklepipe.PicklePipe(w, protocol=2)
+        wr = picklepipe.MarshalPipe(w, version=2)
         self.addCleanup(wr.close)
 
-        self.assertEqual(wr.protocol, 2)
-        self.assertEqual(rd.protocol, 2)
+        self.assertEqual(wr.version, 2)
+        self.assertEqual(rd.version, 2)
 
-    def test_different_protocol(self):
+    def test_different_version(self):
         r, w = self.make_socketpair()
-        rd = picklepipe.PicklePipe(r, protocol=1)
+        rd = picklepipe.MarshalPipe(r, version=1)
         self.addCleanup(rd.close)
-        wr = picklepipe.PicklePipe(w, protocol=2)
+        wr = picklepipe.MarshalPipe(w, version=2)
         self.addCleanup(wr.close)
 
-        self.assertEqual(wr.protocol, 1)
-        self.assertEqual(rd.protocol, 1)
+        self.assertEqual(wr.version, 1)
+        self.assertEqual(rd.version, 1)
 
     def test_fileno(self):
         r, w = self.make_socketpair()
-        rd = picklepipe.PicklePipe(r, protocol=1)
+        rd = picklepipe.MarshalPipe(r, version=1)
         self.addCleanup(rd.close)
-        wr = picklepipe.PicklePipe(w, protocol=2)
+        wr = picklepipe.MarshalPipe(w, version=2)
         self.addCleanup(wr.close)
 
         self.assertEqual(rd.fileno(), r.fileno())
@@ -92,9 +92,9 @@ class TestPicklePipe(unittest.TestCase):
 
     def test_close_pipe(self):
         r, w = self.make_socketpair()
-        rd = picklepipe.PicklePipe(r, protocol=1)
+        rd = picklepipe.MarshalPipe(r, version=1)
         self.addCleanup(rd.close)
-        wr = picklepipe.PicklePipe(w, protocol=2)
+        wr = picklepipe.MarshalPipe(w, version=2)
         self.addCleanup(wr.close)
 
         self.assertIs(wr.closed, False)
@@ -108,16 +108,16 @@ class TestPicklePipe(unittest.TestCase):
 
     def test_recv_unpicklable_object(self):
         rd, wr = self.make_pipe_pair()
-        rd._recv_protocol()
+        rd._recv_version()
         rd._buffer = struct.pack('>I', 128) + os.urandom(128)
         self.assertRaises(picklepipe.PipeUnserializingError, rd.recv_object, timeout=0.3)
         self.assertIs(rd.closed, False)
 
     def test_send_object_to_closed_reading_socket_before_proto(self):
         r, w = self.make_socketpair()
-        rd = picklepipe.PicklePipe(r, protocol=1)
+        rd = picklepipe.MarshalPipe(r, version=1)
         self.addCleanup(rd.close)
-        wr = picklepipe.PicklePipe(w, protocol=2)
+        wr = picklepipe.MarshalPipe(w, version=2)
         self.addCleanup(wr.close)
 
         r.close()
@@ -125,25 +125,25 @@ class TestPicklePipe(unittest.TestCase):
 
     def test_send_object_to_closed_reading_socket_after_proto(self):
         r, w = self.make_socketpair()
-        rd = picklepipe.PicklePipe(r, protocol=1)
+        rd = picklepipe.MarshalPipe(r, version=1)
         self.addCleanup(rd.close)
-        wr = picklepipe.PicklePipe(w, protocol=2)
+        wr = picklepipe.MarshalPipe(w, version=2)
         self.addCleanup(wr.close)
 
-        rd._recv_protocol()
-        wr._recv_protocol()
+        rd._recv_version()
+        wr._recv_version()
         r.close()
         self.assertRaises(picklepipe.PipeClosed, wr.send_object, 'abc')
 
     def test_send_object_to_closed_writing_socket(self):
         r, w = self.make_socketpair()
-        rd = picklepipe.PicklePipe(r, protocol=1)
+        rd = picklepipe.MarshalPipe(r, version=1)
         self.addCleanup(rd.close)
-        wr = picklepipe.PicklePipe(w, protocol=2)
+        wr = picklepipe.MarshalPipe(w, version=2)
         self.addCleanup(wr.close)
 
-        rd._recv_protocol()
-        wr._recv_protocol()
+        rd._recv_version()
+        wr._recv_version()
         w.close()
         self.assertRaises(picklepipe.PipeClosed, wr.send_object, 'abc')
 
@@ -169,7 +169,7 @@ class TestPicklePipe(unittest.TestCase):
         # Only want to use the SelectSelector here.
         self.patch_default_selector()
 
-        pipe = picklepipe.PicklePipe(FakeSocket())
+        pipe = picklepipe.MarshalPipe(FakeSocket())
         self.addCleanup(pipe.close)
 
         self.assertRaises(picklepipe.PipeClosed, pipe.send_object, 'abc')

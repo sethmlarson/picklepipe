@@ -21,7 +21,7 @@ with open('requirements.txt') as f:
 if __name__ == '__main__':
     setup(
         name='picklepipe',
-        description='Python pickling protocol over any network interface.',
+        description='Python pickling and marshal protocol over any network interface.',
         long_description='\n\n'.join([readme, changes]),
         license='MIT',
         url='http://picklepipe.readthedocs.io',
