@@ -1,3 +1,4 @@
+import os
 import struct
 import pickle
 import unittest
@@ -105,6 +106,47 @@ class TestPicklePipe(unittest.TestCase):
         rd.close()
         self.assertIs(rd.closed, True)
 
+    def test_recv_unpicklable_object(self):
+        rd, wr = self.make_pipe_pair()
+        rd._recv_protocol()
+        rd._buffer = struct.pack('>I', 128) + os.urandom(128)
+        self.assertRaises(picklepipe.PicklePipeClosed, rd.recv_object, timeout=0.3)
+        self.assertIs(rd.closed, True)
+
+    def test_send_object_to_closed_reading_socket_before_proto(self):
+        r, w = self.make_socketpair()
+        rd = picklepipe.PicklePipe(r, protocol=1)
+        self.addCleanup(rd.close)
+        wr = picklepipe.PicklePipe(w, protocol=2)
+        self.addCleanup(wr.close)
+
+        r.close()
+        self.assertRaises(picklepipe.PicklePipeClosed, wr.send_object, 'abc')
+
+    def test_send_object_to_closed_reading_socket_after_proto(self):
+        r, w = self.make_socketpair()
+        rd = picklepipe.PicklePipe(r, protocol=1)
+        self.addCleanup(rd.close)
+        wr = picklepipe.PicklePipe(w, protocol=2)
+        self.addCleanup(wr.close)
+
+        rd._recv_protocol()
+        wr._recv_protocol()
+        r.close()
+        self.assertRaises(picklepipe.PicklePipeClosed, wr.send_object, 'abc')
+
+    def test_send_object_to_closed_writing_socket(self):
+        r, w = self.make_socketpair()
+        rd = picklepipe.PicklePipe(r, protocol=1)
+        self.addCleanup(rd.close)
+        wr = picklepipe.PicklePipe(w, protocol=2)
+        self.addCleanup(wr.close)
+
+        rd._recv_protocol()
+        wr._recv_protocol()
+        w.close()
+        self.assertRaises(picklepipe.PicklePipeClosed, wr.send_object, 'abc')
+
     def test_erroring_socket(self):
         class FakeSocket(object):
             def __init__(self):
@@ -132,3 +174,4 @@ class TestPicklePipe(unittest.TestCase):
 
         self.assertRaises(picklepipe.PicklePipeClosed, pipe.send_object, 'abc')
         self.assertIs(pipe.closed, True)
+

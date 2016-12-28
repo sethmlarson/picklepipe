@@ -140,13 +140,17 @@ class PicklePipe(object):
         """ Resolves what the highest protocol number for
         pickling that is allowed by the peer. """
         if not self._protocol_recv:
-            data = self._read_bytes(1)
-            if len(data) == 0:
+            try:
+                data = self._read_bytes(1)
+                if len(data) == 0:
+                    self.close()
+                    raise PicklePipeClosed()
+                peer_protocol = struct.unpack('>B', data)[0]
+                self._protocol = min(self._protocol or pickle.HIGHEST_PROTOCOL, peer_protocol)
+                self._protocol_recv = True
+            except (OSError, socket.error):
                 self.close()
                 raise PicklePipeClosed()
-            peer_protocol = struct.unpack('>B', data)[0]
-            self._protocol = min(self._protocol or pickle.HIGHEST_PROTOCOL, peer_protocol)
-            self._protocol_recv = True
 
     def _read_bytes(self, n, timeout=None):
         if len(self._buffer) > n:
