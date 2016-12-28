@@ -14,6 +14,12 @@ class TestPicklePipe(unittest.TestCase):
         from picklepipe.socketpair import socketpair
         return socketpair()
 
+    def patch_default_selector(self):
+        from picklepipe import pipe
+        old_default = pipe.selectors2.DefaultSelector
+        self.addCleanup(setattr(pipe.selectors2, 'DefaultSelector', old_default))
+        pipe.selectors2.DefaultSelector = pipe.selectors2.SelectSelector
+
     def test_send_single_object(self):
         rd, wr = self.make_pipe_pair()
         wr.send_object('abc')
@@ -97,6 +103,9 @@ class TestPicklePipe(unittest.TestCase):
                 if self._sent:
                     raise OSError()
                 self._sent = True
+
+        # Only want to use the SelectSelector here.
+        self.patch_default_selector()
 
         pipe = picklepipe.PicklePipe(FakeSocket())
         self.addCleanup(pipe.close)
