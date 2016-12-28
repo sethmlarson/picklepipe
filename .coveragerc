@@ -2,6 +2,9 @@
 include =
     picklepipe/*
 
+omit =
+    picklepipe/socketpair.py
+
 [report]
 exclude_lines =
     except ImportError:

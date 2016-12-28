@@ -8,8 +8,21 @@ from .timeout import Timeout
 
 __all__ = [
     'PicklePipe',
-    'make_pipe_pair'
+    'make_pipe_pair',
+    'PicklePipeTimeout',
+    'PicklePipeError'
 ]
+
+
+class PicklePipeError(Exception):
+    """ Generic error for :class:`picklepipe.PicklePipe` """
+    pass
+
+
+class PicklePipeTimeout(PicklePipeError):
+    """ Exception for when retrieving an object from
+    a :class:`picklepipe.PicklePipe` times out. """
+    pass
 
 
 class PicklePipe(object):
@@ -27,8 +40,7 @@ class PicklePipe(object):
         self._sock.setblocking(False)
 
         self._selector = selectors2.DefaultSelector()
-        events = selectors2.EVENT_READ | selectors2.EVENT_WRITE
-        self._selector.register(self._sock, events)
+        self._selector.register(self._sock, selectors2.EVENT_READ)
 
         self._send_protocol()
         self._closed = True
@@ -92,17 +104,13 @@ class PicklePipe(object):
             len_data = self._read_bytes(4, timeout=t.remaining)
             if len(len_data) != 4:
                 self._buffer += len_data
-                return None
+                raise PicklePipeTimeout()
             data_len = struct.unpack('>I', len_data)[0]
             pickle_data = self._read_bytes(data_len, timeout=t.remaining)
             if len(pickle_data) != data_len:
                 self._buffer += len_data + pickle_data
-                return None
-            try:
-                obj = pickle.loads(pickle_data)
-            except pickle.UnpicklingError:
-                return None
-            return obj
+                raise PicklePipeTimeout()
+            return pickle.loads(pickle_data)
 
     def _send_protocol(self):
         if not self._protocol_sent:
