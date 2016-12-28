@@ -79,7 +79,7 @@ class BaseSerializingPipe(object):
             self._sock.close()
             self._selector.unregister(self._sock)
             self._selector.close()
-        except Exception:
+        except Exception:  # Skip coverage.
             pass
         self._sock = None
         self._selector = None
@@ -157,7 +157,7 @@ class BaseSerializingPipe(object):
                     if t.timed_out:
                         break
                 except selectors2.SelectorError:
-                    return buffer
+                    return buffer  # Skip coverage.
         return buffer
 
 

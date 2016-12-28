@@ -1,6 +1,9 @@
 import socket
 import struct
-import pickle
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
 
 from .pipe import (BaseSerializingPipe,
                    PipeClosed)
@@ -52,7 +55,7 @@ class PicklePipe(BaseSerializingPipe):
         """ Pickles and sends and object to the peer.
 
         :param obj: Object to send to the peer.
-        :raises: :class:`picklepipe.PicklePipeClosed` if the other end of the pipe is closed.
+        :raises: :class:`picklepipe.PipeClosed` if the other end of the pipe is closed.
         """
         self._recv_protocol()
         super(PicklePipe, self).send_object(obj)
@@ -62,7 +65,7 @@ class PicklePipe(BaseSerializingPipe):
 
         :param float timeout: Number of seconds to wait before timing out.
         :return: Pickled object or None if timed out.
-        :raises: :class:`picklepipe.PicklePipeClosed` if the other end of the pipe is closed.
+        :raises: :class:`picklepipe.PipeClosed` if the other end of the pipe is closed.
         """
         self._recv_protocol()
         return super(PicklePipe, self).recv_object(timeout)
@@ -77,7 +80,7 @@ class PicklePipe(BaseSerializingPipe):
         pickling that is allowed by the peer. """
         if not self._protocol_recv:
             try:
-                data = self._read_bytes(1)
+                data = self._read_bytes(1, timeout=1.0)
                 if len(data) == 0:
                     self.close()
                     raise PipeClosed()

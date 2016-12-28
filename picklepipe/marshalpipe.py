@@ -23,7 +23,7 @@ class _MarshalSerializer(object):
 
 class MarshalPipe(BaseSerializingPipe):
     """ Wraps an already connected socket and uses that
-    socket as a interface to send pickled objects to a peer.
+    socket as a interface to send marshalled objects to a peer.
     Can be used to pickle not only single objects but also
     to pickle objects in a stream-able fashion. """
     def __init__(self, sock, version=None):
@@ -52,17 +52,17 @@ class MarshalPipe(BaseSerializingPipe):
         """ Pickles and sends and object to the peer.
 
         :param obj: Object to send to the peer.
-        :raises: :class:`picklepipe.PicklePipeClosed` if the other end of the pipe is closed.
+        :raises: :class:`picklepipe.PipeClosed` if the other end of the pipe is closed.
         """
         self._recv_version()
         super(MarshalPipe, self).send_object(obj)
 
     def recv_object(self, timeout=None):
-        """ Receives a pickled object from the peer.
+        """ Receives a marshalled object from the peer.
 
         :param float timeout: Number of seconds to wait before timing out.
         :return: Pickled object or None if timed out.
-        :raises: :class:`picklepipe.PicklePipeClosed` if the other end of the pipe is closed.
+        :raises: :class:`picklepipe.PipeClosed` if the other end of the pipe is closed.
         """
         self._recv_version()
         return super(MarshalPipe, self).recv_object(timeout)
@@ -77,7 +77,7 @@ class MarshalPipe(BaseSerializingPipe):
         pickling that is allowed by the peer. """
         if not self._version_recv:
             try:
-                data = self._read_bytes(1)
+                data = self._read_bytes(1, timeout=1.0)
                 if len(data) == 0:
                     self.close()
                     raise PipeClosed()

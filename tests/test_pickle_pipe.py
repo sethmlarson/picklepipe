@@ -172,3 +172,11 @@ class TestPicklePipe(unittest.TestCase):
         rd._read_bytes = bad_recv_bytes
         self.assertRaises(picklepipe.PipeClosed, rd.recv_object, timeout=0.3)
         self.assertIs(rd.closed, True)
+
+    def test_no_data_for_recv_protocol(self):
+        r, w = self.make_socketpair()
+        rd = picklepipe.PicklePipe(r)
+        self.addCleanup(rd.close)
+
+        self.assertRaises(picklepipe.PipeClosed, rd._recv_protocol)
+        self.assertIs(rd.closed, True)
