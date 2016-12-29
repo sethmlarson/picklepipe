@@ -220,6 +220,10 @@ class BasePipeTestCase(unittest.TestCase):
         self.assertRaises(ValueError, pipe.set_max_size, -1)
         self.assertRaises(ValueError, pipe.set_max_size, 'abc')
 
+        for size in range(20):
+            pipe.set_max_size(size)
+            self.assertEqual(pipe.max_size, size)
+
     def test_recv_zero_width_object(self):
         rd, _ = self.make_pipe_pair()
         rd._recv_protocol()
