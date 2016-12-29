@@ -11,14 +11,14 @@ __all__ = [
 
 
 class _MarshalSerializer(object):
-    def __init__(self, version):
-        self._version = version
+    def __init__(self, protocol):
+        self._protocol = protocol
 
     def loads(self, data):
         return marshal.loads(data)
 
     def dumps(self, obj):
-        return marshal.dumps(obj, self._version)
+        return marshal.dumps(obj, self._protocol)
 
 
 class MarshalPipe(BaseSerializingPipe):
@@ -26,27 +26,27 @@ class MarshalPipe(BaseSerializingPipe):
     socket as a interface to send marshaled objects to a peer.
     Can be used to pickle not only single objects but also
     to pickle objects in a stream-able fashion. """
-    def __init__(self, sock, version=None):
+    def __init__(self, sock, protocol=None):
         """
         Creates a :class:`picklepipe.MarshalPipe` instance wrapping
         a given socket.
 
         :param sock: Socket to wrap.
-        :param version: Marshal version to favor.
+        :param protocol: Marshal protocol to favor.
         """
         super(MarshalPipe, self).__init__(sock, None)
-        self._version = version
-        self._version_sent = False
-        self._version_recv = False
+        self._protocol = protocol
+        self._protocol_sent = False
+        self._protocol_recv = False
 
-        self._send_version()
+        self._send_protocol()
 
     @property
-    def version(self):
-        """ Highest version available between a peer
+    def protocol(self):
+        """ Highest protocol available between a peer
         and the current pipe owner. """
-        self._recv_version()
-        return self._version
+        self._recv_protocol()
+        return self._protocol
 
     def send_object(self, obj):
         """ Pickles and sends and object to the peer.
@@ -54,7 +54,7 @@ class MarshalPipe(BaseSerializingPipe):
         :param obj: Object to send to the peer.
         :raises: :class:`picklepipe.PipeClosed` if the other end of the pipe is closed.
         """
-        self._recv_version()
+        self._recv_protocol()
         super(MarshalPipe, self).send_object(obj)
 
     def recv_object(self, timeout=None):
@@ -64,31 +64,31 @@ class MarshalPipe(BaseSerializingPipe):
         :return: Pickled object or None if timed out.
         :raises: :class:`picklepipe.PipeClosed` if the other end of the pipe is closed.
         """
-        self._recv_version()
+        self._recv_protocol()
         return super(MarshalPipe, self).recv_object(timeout)
 
     def fileno(self):
-        self._recv_version()
+        self._recv_protocol()
         return super(MarshalPipe, self).fileno()
 
-    def _send_version(self):
-        if not self._version_sent:
-            self._sock.sendall(struct.pack('>B', self._version or marshal.version))
-            self._version_sent = True
+    def _send_protocol(self):
+        if not self._protocol_sent:
+            self._sock.sendall(struct.pack('>B', self._protocol or marshal.version))
+            self._protocol_sent = True
 
-    def _recv_version(self):
-        """ Resolves what the highest version number for
+    def _recv_protocol(self):
+        """ Resolves what the highest protocol number for
         pickling that is allowed by the peer. """
-        if not self._version_recv:
+        if not self._protocol_recv:
             try:
                 data = self._read_bytes(1, timeout=1.0)
                 if len(data) == 0:
                     self.close()
                     raise PipeClosed()
-                peer_version = struct.unpack('>B', data)[0]
-                self._version = min(self._version or marshal.version, peer_version)
-                self._version_recv = True
-                self._serializer = _MarshalSerializer(self._version)
+                peer_protocol = struct.unpack('>B', data)[0]
+                self._protocol = min(self._protocol or marshal.version, peer_protocol)
+                self._protocol_recv = True
+                self._serializer = _MarshalSerializer(self._protocol)
             except (OSError, socket.error):
                 self.close()
                 raise PipeClosed()

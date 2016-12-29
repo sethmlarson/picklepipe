@@ -4,6 +4,7 @@ from .pipe import (BaseSerializingPipe,
                    PipeTimeout,
                    PipeSerializingError,
                    PipeDeserializingError,
+                   PipeObjectTooLargeError,
                    make_pipe_pair)
 from .picklepipe import PicklePipe
 from .marshalpipe import MarshalPipe

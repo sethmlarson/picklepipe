@@ -12,8 +12,17 @@ __all__ = [
     'PipeError',
     'PipeTimeout',
     'PipeSerializingError',
-    'PipeDeserializingError'
+    'PipeDeserializingError',
+    'PipeObjectTooLargeError'
 ]
+DEFAULT_MAX_SIZE = 0xFFFFFF
+
+
+def _check_max_size(max_size):
+    if max_size > 0xFFFFFFFF:
+        raise ValueError('max_size cannot be more than %d' % max_size)
+    if max_size < 0:
+        raise ValueError('max_size cannot be negative.')
 
 
 class PipeError(Exception):
@@ -47,17 +56,27 @@ class PipeDeserializingError(PipeError):
         self.exception = exception
 
 
+class PipeObjectTooLargeError(PipeError):
+    """ Exception for when an object is too large for the
+    pipe's max_size attribute. """
+    pass
+
+
 class BaseSerializingPipe(object):
     """ Wraps an already connected socket and uses that
     socket as a interface to send serialized objects to a peer. """
-    def __init__(self, sock, serializer):
+    def __init__(self, sock, serializer, max_size=None):
         """
         :param sock: Socket to wrap.
         :param serializer:
             Object that implements ``.dumps(obj)`` and
             ``.loads(data)`` to serialize objects.
         """
+        if max_size is None:
+            max_size = DEFAULT_MAX_SIZE
+        _check_max_size(max_size)
         self._buffer = b''
+        self._max_size = max_size
         self._serializer = serializer
         self._sock = sock  # type: socket.socket
         self._sock.setblocking(False)
@@ -73,6 +92,14 @@ class BaseSerializingPipe(object):
 
     def __del__(self):
         self.close()
+
+    @property
+    def max_size(self):
+        return self._max_size
+
+    def set_max_size(self, max_size):
+        _check_max_size(max_size)
+        self._max_size = max_size
 
     def close(self):
         if self._sock is None:
@@ -107,7 +134,7 @@ class BaseSerializingPipe(object):
             raise PipeSerializingError(e)
         data_len = len(data)
         if data_len > 0xFFFFFFFF:
-            raise ValueError('Serialized object is too large.')
+            raise PipeObjectTooLargeError()
         try:
             self._sock.sendall(struct.pack('>I', len(data)))
             self._sock.sendall(data)
@@ -129,6 +156,26 @@ class BaseSerializingPipe(object):
                     self._buffer += len_data
                     raise PipeTimeout()
                 data_len = struct.unpack('>I', len_data)[0]
+                if data_len == 0:
+                    raise PipeDeserializingError(ValueError('Object cannot be zero width.'))
+                if data_len > self._max_size:
+                    # A sticky situation where we now need to void the object
+                    # that is trying to be sent to us. Thing is we need to also
+                    # complete this voiding before our timeout so if we can't
+                    # finish voiding we should be conservative and close the pipe.
+                    # Otherwise just notify that the object was too large.
+                    data_to_read = data_len
+                    while data_to_read > 0:
+                        data = self._read_bytes(min(0xFFFFFF, data_to_read),
+                                                timeout=t.remaining)
+                        data_to_read -= data
+                        if not data and t.timed_out:
+                            break
+                    if data_to_read == 0:
+                        raise PipeObjectTooLargeError()
+                    else:
+                        self.close()
+                        raise PipeClosed()
                 pickle_data = self._read_bytes(data_len, timeout=t.remaining)
                 if len(pickle_data) != data_len:
                     self._buffer += len_data + pickle_data
@@ -137,7 +184,7 @@ class BaseSerializingPipe(object):
                     return self._serializer.loads(pickle_data)
                 except Exception as e:
                     raise PipeDeserializingError(e)
-        except (OSError, socket.error, selectors2.SelectorError):
+        except (OSError, socket.error, selectors2.SelectorError, struct.error):
             self.close()
             raise PipeClosed()
 
