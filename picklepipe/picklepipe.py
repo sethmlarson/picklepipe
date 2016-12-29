@@ -51,6 +51,10 @@ class PicklePipe(BaseSerializingPipe):
         self._recv_protocol()
         return self._protocol
 
+    def fileno(self):
+        self._recv_protocol()
+        return super(PicklePipe, self).fileno()
+
     def send_object(self, obj):
         """ Pickles and sends and object to the peer.
 

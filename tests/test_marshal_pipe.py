@@ -2,6 +2,7 @@ import os
 import socket
 import struct
 import marshal
+import selectors2
 import unittest
 import picklepipe
 
@@ -181,3 +182,23 @@ class TestMarshalPipe(unittest.TestCase):
 
         self.assertRaises(picklepipe.PipeClosed, rd._recv_version)
         self.assertIs(rd.closed, True)
+
+    def test_pipe_selectable(self):
+        rd, wr = self.make_pipe_pair()
+        selector = selectors2.DefaultSelector()
+        selector.register(rd, selectors2.EVENT_READ)
+        selector.register(wr, selectors2.EVENT_WRITE)
+
+        events = selector.select(timeout=0.1)
+        self.assertEqual(len(events), 1)
+        self.assertEqual(events[0][0].fileobj, wr)
+        self.assertEqual(events[0][1], selectors2.EVENT_WRITE)
+
+        wr.send_object('abc')
+
+        events = selector.select(timeout=0.1)
+        self.assertEqual(len(events), 2)
+        index = events[0][0] == wr
+
+        self.assertEqual(events[index][0].fileobj, rd)
+        self.assertEqual(events[index][1], selectors2.EVENT_READ)
