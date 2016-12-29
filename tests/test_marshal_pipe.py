@@ -1,4 +1,3 @@
-import os
 import socket
 import struct
 import marshal
@@ -111,7 +110,7 @@ class TestMarshalPipe(unittest.TestCase):
     def test_recv_unpicklable_object(self):
         rd, wr = self.make_pipe_pair()
         rd._recv_version()
-        rd._buffer = struct.pack('>I', 128) + os.urandom(128)
+        rd._buffer = struct.pack('>I', 6) + b'abc123'
         self.assertRaises(picklepipe.PipeDeserializingError, rd.recv_object, timeout=0.3)
         self.assertIs(rd.closed, False)
 
