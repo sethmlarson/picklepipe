@@ -26,7 +26,9 @@ PicklePipe
     :target: https://saythanks.io/to/SethMichaelLarson
     :alt: Say Thanks to the Maintainers
 
-Python pickling protocol over any network interface.
+Python pickling protocol over any network interface. Also provides a basic interface to implement your own serializing pipes.
+
+This project was started and released in under 24 hours while I was on holiday break.
 
 Getting Started with PicklePipe
 -------------------------------
