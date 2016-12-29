@@ -12,7 +12,7 @@ from .marshalpipe import MarshalPipe
 __author__ = 'Seth Michael Larson'
 __email__ = 'sethmichaellarson@protonmail.com'
 __license__ = 'MIT'
-__version__ = 'dev'
+__version__ = '1.0.0'
 
 __all__ = [
     'BaseSerializingPipe',
