@@ -6,6 +6,13 @@ import unittest
 import picklepipe
 
 
+def _safe_close(pipe):
+    try:
+        pipe.close()
+    except:
+        pass
+
+
 class BasePipeTestCase(unittest.TestCase):
     PIPE_TYPE = None
 
@@ -13,8 +20,8 @@ class BasePipeTestCase(unittest.TestCase):
         rd, wr = picklepipe.make_pipe_pair(self.PIPE_TYPE)
         assert isinstance(rd, picklepipe.BaseSerializingPipe)
         assert isinstance(wr, picklepipe.BaseSerializingPipe)
-        self.addCleanup(rd.close)
-        self.addCleanup(wr.close)
+        self.addCleanup(_safe_close, rd)
+        self.addCleanup(_safe_close, wr)
         return rd, wr
 
     def make_socketpair(self):
@@ -206,14 +213,18 @@ class BasePipeTestCase(unittest.TestCase):
         self.assertEqual(events[index][0].fileobj, rd)
         self.assertEqual(events[index][1], selectors2.EVENT_READ)
 
-    def test_pipe_max_size(self):
-        rd, _ = self.make_socketpair()
+    def test_pipe_init_max_size(self):
+        rd, wr = self.make_socketpair()
         self.assertRaises(ValueError, self.PIPE_TYPE, rd, max_size=0xFFFFFFFF + 1)
         self.assertRaises(ValueError, self.PIPE_TYPE, rd, max_size=-1)
+        self.assertRaises(ValueError, self.PIPE_TYPE, rd, max_size='abc')
 
+    def test_pipe_set_max_size(self):
+        rd, wr = self.make_socketpair()
         pipe = self.PIPE_TYPE(rd)
         self.assertRaises(ValueError, pipe.set_max_size, 0xFFFFFFFF + 1)
         self.assertRaises(ValueError, pipe.set_max_size, -1)
+        self.assertRaises(ValueError, pipe.set_max_size, 'abc')
 
     def test_recv_zero_width_object(self):
         rd, _ = self.make_pipe_pair()

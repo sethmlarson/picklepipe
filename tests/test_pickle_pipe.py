@@ -7,4 +7,7 @@ class PickleTestCase(_base_pipe_testcase.BasePipeTestCase):
 
     def test_pipe_send_large_object(self):
         _, wr = self.make_pipe_pair()
-        self.assertRaises(picklepipe.PipeObjectTooLargeError, wr.send_object, b'x' * (0xFFFFFFFF + 1))
+        try:
+            self.assertRaises(picklepipe.PipeObjectTooLargeError, wr.send_object, b'x' * (0xFFFFFFFF + 1))
+        except OverflowError:
+            self.skipTest('On some platforms using a value >0xFFFFFFFF actually overflows integers.')

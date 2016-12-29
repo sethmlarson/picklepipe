@@ -19,6 +19,8 @@ DEFAULT_MAX_SIZE = 0xFFFFFF
 
 
 def _check_max_size(max_size):
+    if not isinstance(max_size, int):
+        raise ValueError('max_size must be an integer value.')
     if max_size > 0xFFFFFFFF:
         raise ValueError('max_size cannot be more than %d' % max_size)
     if max_size < 0:
@@ -76,17 +78,21 @@ class BaseSerializingPipe(object):
             to deserialize. This value is meant to limit the pipe's maximum
             memory usage while deserializing objects.
         """
-        if max_size is None:
-            max_size = DEFAULT_MAX_SIZE
-        _check_max_size(max_size)
+        # Setting up the socket and serializer.
         self._buffer = b''
-        self._max_size = max_size
         self._serializer = serializer
         self._sock = sock  # type: socket.socket
         self._sock.setblocking(False)
 
+        # Adding the socket to the selector.
         self._selector = selectors2.DefaultSelector()
         self._selector.register(self._sock, selectors2.EVENT_READ)
+
+        # Setting up the max_size attribute.
+        if max_size is None:
+            max_size = DEFAULT_MAX_SIZE
+        _check_max_size(max_size)
+        self._max_size = max_size
 
     def __enter__(self):
         return self
