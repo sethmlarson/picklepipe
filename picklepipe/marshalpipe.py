@@ -22,10 +22,11 @@ class _MarshalSerializer(object):
 
 
 class MarshalPipe(BaseSerializingPipe):
-    """ Wraps an already connected socket and uses that
-    socket as a interface to send marshaled objects to a peer.
-    Can be used to pickle not only single objects but also
-    to pickle objects in a stream-able fashion. """
+    """ Implementation of the :class:`picklepipe.BaseSerializingPipe`
+    that uses the marshal protocol for serialization.
+
+    See the `Python docs on the marshal module <https://docs.python.org/3/library/marshal.html>`_
+    for more information. """
     def __init__(self, sock, protocol=None, max_size=None):
         """
         Creates a :class:`picklepipe.MarshalPipe` instance wrapping
@@ -49,21 +50,10 @@ class MarshalPipe(BaseSerializingPipe):
         return self._protocol
 
     def send_object(self, obj):
-        """ Pickles and sends and object to the peer.
-
-        :param obj: Object to send to the peer.
-        :raises: :class:`picklepipe.PipeClosed` if the other end of the pipe is closed.
-        """
         self._recv_protocol()
         super(MarshalPipe, self).send_object(obj)
 
     def recv_object(self, timeout=None):
-        """ Receives a marshaled object from the peer.
-
-        :param float timeout: Number of seconds to wait before timing out.
-        :return: Pickled object or None if timed out.
-        :raises: :class:`picklepipe.PipeClosed` if the other end of the pipe is closed.
-        """
         self._recv_protocol()
         return super(MarshalPipe, self).recv_object(timeout)
 

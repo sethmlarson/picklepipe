@@ -1,6 +1,4 @@
-import os
 import pickle
-import unittest
 import picklepipe
 from . import _base_pipe_testcase
 

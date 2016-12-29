@@ -25,10 +25,11 @@ class _PickleSerializer(object):
 
 
 class PicklePipe(BaseSerializingPipe):
-    """ Wraps an already connected socket and uses that
-    socket as a interface to send pickled objects to a peer.
-    Can be used to pickle not only single objects but also
-    to pickle objects in a stream-able fashion. """
+    """ Implementation of the :class:`picklepipe.BaseSerializingPipe`
+    that uses the pickling protocol for serialization.
+
+    See the `Python docs on the pickle module <https://docs.python.org/3/library/pickle.html>`_
+    for more information. """
     def __init__(self, sock, protocol=None, max_size=None):
         """
         Creates a :class:`picklepipe.PicklePipe` instance wrapping
@@ -56,21 +57,10 @@ class PicklePipe(BaseSerializingPipe):
         return super(PicklePipe, self).fileno()
 
     def send_object(self, obj):
-        """ Pickles and sends and object to the peer.
-
-        :param obj: Object to send to the peer.
-        :raises: :class:`picklepipe.PipeClosed` if the other end of the pipe is closed.
-        """
         self._recv_protocol()
         super(PicklePipe, self).send_object(obj)
 
     def recv_object(self, timeout=None):
-        """ Receives a pickled object from the peer.
-
-        :param float timeout: Number of seconds to wait before timing out.
-        :return: Pickled object or None if timed out.
-        :raises: :class:`picklepipe.PipeClosed` if the other end of the pipe is closed.
-        """
         self._recv_protocol()
         return super(PicklePipe, self).recv_object(timeout)
 

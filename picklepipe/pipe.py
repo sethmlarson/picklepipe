@@ -15,6 +15,7 @@ __all__ = [
     'PipeDeserializingError',
     'PipeObjectTooLargeError'
 ]
+# Default size is 16MB.
 DEFAULT_MAX_SIZE = 0xFFFFFF
 
 
@@ -105,13 +106,22 @@ class BaseSerializingPipe(object):
 
     @property
     def max_size(self):
+        """ Current setting for maximum size. """
         return self._max_size
 
     def set_max_size(self, max_size):
+        """
+        Sets the maximum size object that the pipe is willing to
+        deserialize to limit memory usage of the pipe.
+
+        :param int max_size:
+            Maximum number of bytes to deserialize for a single object.
+        """
         _check_max_size(max_size)
         self._max_size = max_size
 
     def close(self):
+        """ Closes the pipe instance as well as the internal socket. """
         if self._sock is None:
             return
         try:
@@ -125,6 +135,7 @@ class BaseSerializingPipe(object):
 
     @property
     def closed(self):
+        """ Attribute is True if the pipe instance is closed. """
         return self._sock is None
 
     def fileno(self):

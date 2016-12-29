@@ -5,6 +5,7 @@ PicklePipe 🥒
     :hidden:
     :maxdepth: 2
 
+    api
     changelog
     contributing
     about
@@ -50,18 +51,13 @@ Please read the security considerations before using PicklePipe.
     pipe.send_object('Hello, world!')
     pipe.close()
 
-API Reference
--------------
-
-.. automodule:: picklepipe
-
 Security Considerations
 -----------------------
 
-Unpickling or unmarshalling data from an untrusted source is a security hazard and can lead to arbitrary code execution.
+Un-pickling or un-marshaling data from an untrusted source is a security hazard and can lead to arbitrary code execution.
 When using PicklePipe to receive objects from an external source one should be very careful to verify that
 the source of the data is trustworthy. This includes using SSL/TLS (both client and server side verification)
-to verify the connection is who we intend to receive data from.
+to verify the connection is who we intend to receive data from if the pipes are not local.
 
 `See the warnings within the pickle module for more information <https://docs.python.org/2/library/pickle.html>`_.
 
