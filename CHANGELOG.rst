@@ -9,3 +9,4 @@ Release 0.0.1 (Development)
 * Added support for the ``marshal`` object serializer with :class:`picklepipe.MarshalPipe`
 * :class:`picklepipe.PicklePipe` now uses ``cPickle`` module if available.
 * Make all pipe types selectable using selectors.
+* Add the ``max_size`` attribute for limiting memory usage of pipes.

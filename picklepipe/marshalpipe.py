@@ -26,7 +26,7 @@ class MarshalPipe(BaseSerializingPipe):
     socket as a interface to send marshaled objects to a peer.
     Can be used to pickle not only single objects but also
     to pickle objects in a stream-able fashion. """
-    def __init__(self, sock, protocol=None):
+    def __init__(self, sock, protocol=None, max_size=None):
         """
         Creates a :class:`picklepipe.MarshalPipe` instance wrapping
         a given socket.
@@ -34,7 +34,7 @@ class MarshalPipe(BaseSerializingPipe):
         :param sock: Socket to wrap.
         :param protocol: Marshal protocol to favor.
         """
-        super(MarshalPipe, self).__init__(sock, None)
+        super(MarshalPipe, self).__init__(sock, None, max_size=max_size)
         self._protocol = protocol
         self._protocol_sent = False
         self._protocol_recv = False

@@ -71,6 +71,10 @@ class BaseSerializingPipe(object):
         :param serializer:
             Object that implements ``.dumps(obj)`` and
             ``.loads(data)`` to serialize objects.
+        :param int max_size:
+            Maximum size of a serialized object that this pipe is willing
+            to deserialize. This value is meant to limit the pipe's maximum
+            memory usage while deserializing objects.
         """
         if max_size is None:
             max_size = DEFAULT_MAX_SIZE
@@ -123,7 +127,7 @@ class BaseSerializingPipe(object):
         return self._sock.fileno()
 
     def send_object(self, obj):
-        """ Pickles and sends and object to the peer.
+        """ Serializes and sends and object to the peer.
 
         :param obj: Object to send to the peer.
         :raises: :class:`picklepipe.PipeClosed` if the other end of the pipe is closed.
@@ -168,7 +172,7 @@ class BaseSerializingPipe(object):
                     while data_to_read > 0:
                         data = self._read_bytes(min(0xFFFFFF, data_to_read),
                                                 timeout=t.remaining)
-                        data_to_read -= data
+                        data_to_read -= len(data)
                         if not data and t.timed_out:
                             break
                     if data_to_read == 0:

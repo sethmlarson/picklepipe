@@ -11,6 +11,8 @@ class BasePipeTestCase(unittest.TestCase):
 
     def make_pipe_pair(self):
         rd, wr = picklepipe.make_pipe_pair(self.PIPE_TYPE)
+        assert isinstance(rd, picklepipe.BaseSerializingPipe)
+        assert isinstance(wr, picklepipe.BaseSerializingPipe)
         self.addCleanup(rd.close)
         self.addCleanup(wr.close)
         return rd, wr
@@ -203,3 +205,38 @@ class BasePipeTestCase(unittest.TestCase):
 
         self.assertEqual(events[index][0].fileobj, rd)
         self.assertEqual(events[index][1], selectors2.EVENT_READ)
+
+    def test_pipe_max_size(self):
+        rd, _ = self.make_socketpair()
+        self.assertRaises(ValueError, self.PIPE_TYPE, rd, max_size=0xFFFFFFFF + 1)
+        self.assertRaises(ValueError, self.PIPE_TYPE, rd, max_size=-1)
+
+        pipe = self.PIPE_TYPE(rd)
+        self.assertRaises(ValueError, pipe.set_max_size, 0xFFFFFFFF + 1)
+        self.assertRaises(ValueError, pipe.set_max_size, -1)
+
+    def test_recv_zero_width_object(self):
+        rd, _ = self.make_pipe_pair()
+        rd._recv_protocol()
+        rd._buffer = b'\x00\x00\x00\x00'
+        self.assertRaises(picklepipe.PipeDeserializingError, rd.recv_object, timeout=0.3)
+        self.assertIs(rd.closed, False)
+
+    def test_recv_too_large_object(self):
+        rd, _ = self.make_pipe_pair()
+        rd._recv_protocol()
+        rd.set_max_size(128)
+        rd._buffer = struct.pack('>I', 129) + (b'x' * 129)
+        self.assertRaises(picklepipe.PipeObjectTooLargeError, rd.recv_object, timeout=0.3)
+        self.assertIs(rd.closed, False)
+
+    def test_recv_too_large_object_cant_void(self):
+        rd, _ = self.make_pipe_pair()
+        rd._recv_protocol()
+        rd.set_max_size(128)
+
+        # This test puts the pipe into an unknown state of only partially
+        # receiving a too-large object for the pipe.
+        rd._buffer = struct.pack('>I', 129) + (b'x' * 128)
+        self.assertRaises(picklepipe.PipeClosed, rd.recv_object, timeout=0.3)
+        self.assertIs(rd.closed, True)
