@@ -209,10 +209,9 @@ class BasePipeTestCase(unittest.TestCase):
         self.assertEqual(events[index][1], selectors2.EVENT_READ)
 
     def test_pipe_init_max_size(self):
-        rd, wr = self.make_socketpair()
-        self.assertRaises(ValueError, self.PIPE_TYPE, rd, max_size=0xFFFFFFFF + 1)
-        self.assertRaises(ValueError, self.PIPE_TYPE, rd, max_size=-1)
-        self.assertRaises(ValueError, self.PIPE_TYPE, rd, max_size='abc')
+        for size in [0xFFFFFFFF + 1, -1, 'abc']:
+            rd, wr = self.make_socketpair()
+            self.assertRaises(ValueError, self.PIPE_TYPE, rd, max_size=size)
 
     def test_pipe_set_max_size(self):
         rd, wr = self.make_socketpair()
