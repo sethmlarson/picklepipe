@@ -8,6 +8,7 @@ from .pipe import (BaseSerializingPipe,
                    make_pipe_pair)
 from .picklepipe import PicklePipe
 from .marshalpipe import MarshalPipe
+from .jsonpipe import JSONPipe
 
 __author__ = 'Seth Michael Larson'
 __email__ = 'sethmichaellarson@protonmail.com'
@@ -18,6 +19,7 @@ __all__ = [
     'BaseSerializingPipe',
     'PicklePipe',
     'MarshalPipe',
+    'JSONPipe',
     'PipeClosed',
     'PipeError',
     'PipeTimeout',
