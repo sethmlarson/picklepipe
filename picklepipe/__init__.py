@@ -23,5 +23,6 @@ __all__ = [
     'PipeTimeout',
     'PipeSerializingError',
     'PipeDeserializingError',
+    'PipeObjectTooLargeError',
     'make_pipe_pair'
 ]

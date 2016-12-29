@@ -67,11 +67,6 @@ class BasePipeTestCase(unittest.TestCase):
         rd._buffer = struct.pack('>I', 4) + b'\x00\x00\x00'
         self.assertRaises(picklepipe.PipeTimeout, rd.recv_object, timeout=0.3)
 
-    def test_default_protocol(self):
-        rd, wr = self.make_pipe_pair()
-        self.assertEqual(rd.protocol, pickle.HIGHEST_PROTOCOL)
-        self.assertEqual(wr.protocol, pickle.HIGHEST_PROTOCOL)
-
     def test_same_protocol(self):
         r, w = self.make_socketpair()
         rd = self.PIPE_TYPE(r, protocol=2)
