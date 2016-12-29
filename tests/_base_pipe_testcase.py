@@ -1,6 +1,5 @@
 import socket
 import struct
-import pickle
 import selectors2
 import unittest
 import picklepipe

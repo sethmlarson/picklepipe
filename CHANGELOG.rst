@@ -1,6 +1,16 @@
 Changelog
 =========
 
+Development
+-----------
+
+* (Add feature or bug fix along with author.)
+
+Release 1.1.0 (December 29, 2016)
+---------------------------------
+
+* Create the :class:`picklepipe.JSONPipe` for serializing JSON data.
+
 Release 1.0.0 (December 28, 2016)
 ---------------------------------
 * Create initial implementation of :class:`picklepipe.PicklePipe`.
