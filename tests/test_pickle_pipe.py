@@ -1,4 +1,6 @@
+import os
 import pickle
+import unittest
 import picklepipe
 from . import _base_pipe_testcase
 
@@ -11,6 +13,7 @@ class PickleTestCase(_base_pipe_testcase.BasePipeTestCase):
         self.assertEqual(rd.protocol, pickle.HIGHEST_PROTOCOL)
         self.assertEqual(wr.protocol, pickle.HIGHEST_PROTOCOL)
 
+    @unittest.skipIf('TRAVIS' in os.environ, 'Skip this test on Travis CI.')
     def test_pipe_send_large_object(self):
         _, wr = self.make_pipe_pair()
         try:

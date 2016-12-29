@@ -143,8 +143,11 @@ class BaseSerializingPipe(object):
         except Exception as e:
             raise PipeSerializingError(e)
         data_len = len(data)
-        if data_len > 0xFFFFFFFF:
+
+        # AppVeyor and Travis CI don't like it when you allocate >4GB.
+        if data_len > 0xFFFFFFFF:  # Skip coverage.
             raise PipeObjectTooLargeError()
+
         try:
             self._sock.sendall(struct.pack('>I', len(data)))
             self._sock.sendall(data)
