@@ -198,7 +198,7 @@ class TestPicklePipe(unittest.TestCase):
 
         events = selector.select(timeout=0.1)
         self.assertEqual(len(events), 2)
-        index = events[0][0] == wr
+        index = 1 if events[0][0].fileobj == wr else 0
 
         self.assertEqual(events[index][0].fileobj, rd)
         self.assertEqual(events[index][1], selectors2.EVENT_READ)
