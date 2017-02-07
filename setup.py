@@ -14,9 +14,6 @@ with open('README.rst') as f:
 with open('CHANGELOG.rst') as f:
     changes = f.read()
 
-with open('requirements.txt') as f:
-    requirements = [line for line in f.read().split('\n') if len(line.strip())]
-
 
 if __name__ == '__main__':
     setup(
@@ -30,7 +27,8 @@ if __name__ == '__main__':
         author_email='sethmichaellarson@protonmail.com',
         maintainer='Seth Michael Larson',
         maintainer_email='sethmichaellarson@protonmail.com',
-        install_requires=requirements,
+        install_requires=['monotonic',
+                          'selectors2'],
         keywords=['picklepipe'],
         packages=['picklepipe'],
         zip_safe=False,
