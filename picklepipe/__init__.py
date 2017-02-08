@@ -13,7 +13,7 @@ from .jsonpipe import JSONPipe
 __author__ = 'Seth Michael Larson'
 __email__ = 'sethmichaellarson@protonmail.com'
 __license__ = 'MIT'
-__version__ = '1.1.0'
+__version__ = '1.1.1'
 
 __all__ = [
     'BaseSerializingPipe',
