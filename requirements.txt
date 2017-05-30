@@ -1,2 +1,2 @@
-selectors2==1.1.1
+selectors2==2.0.0
 monotonic==1.3
