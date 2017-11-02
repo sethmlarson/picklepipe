@@ -1,4 +1,4 @@
-PicklePipe
+PicklePipea
 ==========
 
 .. image:: https://img.shields.io/travis/SethMichaelLarson/picklepipe/master.svg
