@@ -1,5 +1,5 @@
 PicklePipe
-==========
+==========aa
 
 .. image:: https://img.shields.io/travis/SethMichaelLarson/picklepipe/master.svg
     :target: https://travis-ci.org/SethMichaelLarson/picklepipe
@@ -11,7 +11,7 @@ PicklePipe
     :target: https://codecov.io/gh/SethMichaelLarson/picklepipe
     :alt: Test Suite Coverage
 .. image:: https://img.shields.io/codeclimate/github/SethMichaelLarson/picklepipe.svg
-    :target: https://codeclimate.com/github/SethMichaelLarson/picklepipe
+    :target: https://codeclimate.com/agithub/SethMichaelLarson/picklepipe
     :alt: Code Health
 .. image:: https://readthedocs.org/projects/picklepipe/badge/?version=latest
     :target: http://picklepipe.readthedocs.io
